@@ -16,9 +16,22 @@ const Header = () => {
   const getPathForMenuItem = (item: any) => {
     if (item.type === 'internal') {
       if (item.internalLink === 'home') return '/';
+      if (item.internalLink === 'servicos') return '/servicos';
+      if (item.internalLink === 'site') return '/site';
+      if (item.internalLink === 'alex') return '/alex';
+      // Páginas personalizadas criadas pelo usuário
       return `/${item.internalLink}`;
     } else if (item.type === 'iframe') {
-      return `/iframe/${encodeURIComponent(item.externalUrl || '')}`;
+      // Verificar se a URL externa é válida
+      try {
+        const url = item.externalUrl || '';
+        // Adiciona http:// se não tiver protocolo
+        const formattedUrl = url.match(/^https?:\/\//) ? url : `http://${url}`;
+        return `/iframe/${encodeURIComponent(formattedUrl)}`;
+      } catch (e) {
+        console.error("URL inválida:", item.externalUrl);
+        return '#';
+      }
     } else {
       // External links will be handled with onClick
       return '#';
