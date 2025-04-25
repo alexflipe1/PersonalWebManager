@@ -14,20 +14,17 @@ const Header = () => {
   };
 
   const getPathForMenuItem = (item: any) => {
-    // Verificamos o caminho atual do site
-    const basePath = window.location.pathname.split('/')[1];
-
     if (item.type === 'internal') {
-      // Para links internos, usamos caminhos relativos 
-      if (item.internalLink === 'home') return './';
+      // Para links internos, usamos caminhos absolutos, mas sem domínio 
+      if (item.internalLink === 'home') return '/';
       
       // Links para seções principais
-      if (item.internalLink === 'servicos') return './servicos';
-      if (item.internalLink === 'site') return './site';
-      if (item.internalLink === 'alex') return './alex';
+      if (item.internalLink === 'servicos') return '/servicos';
+      if (item.internalLink === 'site') return '/site';
+      if (item.internalLink === 'alex') return '/alex';
       
       // Páginas personalizadas criadas pelo usuário
-      return `./${item.internalLink}`;
+      return `/${item.internalLink}`;
     } else if (item.type === 'iframe') {
       // Verificar se a URL externa é válida
       try {
@@ -35,7 +32,7 @@ const Header = () => {
         // Adiciona http:// se não tiver protocolo
         const formattedUrl = url.match(/^https?:\/\//) ? url : `http://${url}`;
         // Garantimos que a URL do iframe é relativa
-        return `./iframe/${encodeURIComponent(formattedUrl)}`;
+        return `/iframe/${encodeURIComponent(formattedUrl)}`;
       } catch (e) {
         console.error("URL inválida:", item.externalUrl);
         return '#';
@@ -59,6 +56,9 @@ const Header = () => {
     if (item.type === 'internal') {
       e.preventDefault(); // Prevenimos o comportamento padrão
       
+      // Extrair o protocolo e o host da URL atual
+      const baseUrl = window.location.origin;
+      
       let path = '';
       if (item.internalLink === 'home') path = '/';
       else if (item.internalLink === 'servicos') path = '/servicos';
@@ -66,8 +66,8 @@ const Header = () => {
       else if (item.internalLink === 'alex') path = '/alex';
       else path = `/${item.internalLink}`;
       
-      // Navegamos usando a função da biblioteca que manipula o caminho relativo corretamente
-      window.location.href = path;
+      // Criamos a URL completa com o protocolo e host atuais
+      window.location.href = baseUrl + path;
     }
   };
 
