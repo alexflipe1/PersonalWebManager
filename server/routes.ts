@@ -11,21 +11,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Pages routes
   app.get("/api/pages", async (req, res) => {
     try {
-      const pages = await storage.getPages();
+      let pages;
+      
+      if (typeof pageService.getPages === 'function') {
+        // Use o arquivo de serviço se disponível
+        pages = pageService.getPages();
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        pages = await storage.getPages();
+      }
+      
       res.json(pages);
     } catch (error) {
+      console.error("Erro ao buscar páginas:", error);
       res.status(500).json({ message: "Failed to fetch pages" });
     }
   });
 
   app.get("/api/pages/:slug", async (req, res) => {
     try {
-      const page = await storage.getPageBySlug(req.params.slug);
+      const { slug } = req.params;
+      let page;
+      
+      if (typeof pageService.getPageBySlug === 'function') {
+        // Use o arquivo de serviço se disponível
+        page = pageService.getPageBySlug(slug);
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        page = await storage.getPageBySlug(slug);
+      }
+      
       if (!page) {
         return res.status(404).json({ message: "Page not found" });
       }
+      
       res.json(page);
     } catch (error) {
+      console.error(`Erro ao buscar página ${req.params.slug}:`, error);
       res.status(500).json({ message: "Failed to fetch page" });
     }
   });
@@ -33,12 +55,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/pages", async (req, res) => {
     try {
       const pageData = insertPageSchema.parse(req.body);
-      const page = await storage.createPage(pageData);
+      
+      let page;
+      if (typeof pageService.createPage === 'function') {
+        // Use o arquivo de serviço se disponível
+        page = pageService.createPage(pageData);
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        page = await storage.createPage(pageData);
+      }
+      
       res.status(201).json(page);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid page data", errors: error.errors });
       }
+      console.error("Erro ao criar página:", error);
       res.status(500).json({ message: "Failed to create page" });
     }
   });
@@ -47,7 +79,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const pageData = insertPageSchema.partial().parse(req.body);
-      const updatedPage = await storage.updatePage(id, pageData);
+      
+      let updatedPage;
+      if (typeof pageService.updatePage === 'function') {
+        // Use o arquivo de serviço se disponível
+        updatedPage = pageService.updatePage(id, pageData);
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        updatedPage = await storage.updatePage(id, pageData);
+      }
       
       if (!updatedPage) {
         return res.status(404).json({ message: "Page not found" });
@@ -58,6 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid page data", errors: error.errors });
       }
+      console.error(`Erro ao atualizar página com ID ${req.params.id}:`, error);
       res.status(500).json({ message: "Failed to update page" });
     }
   });
@@ -80,9 +121,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Menu routes
   app.get("/api/menu", async (req, res) => {
     try {
-      const menuItems = await storage.getMenuItems();
+      let menuItems;
+      
+      if (typeof menuService.getMenuItems === 'function') {
+        // Use o arquivo de serviço se disponível
+        menuItems = menuService.getMenuItems();
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        menuItems = await storage.getMenuItems();
+      }
+      
+      // Ordenar pelo campo 'order'
+      menuItems.sort((a, b) => a.order - b.order);
       res.json(menuItems);
     } catch (error) {
+      console.error("Erro ao buscar itens de menu:", error);
       res.status(500).json({ message: "Failed to fetch menu items" });
     }
   });
@@ -90,12 +143,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/menu", async (req, res) => {
     try {
       const menuItemData = insertMenuItemSchema.parse(req.body);
-      const menuItem = await storage.createMenuItem(menuItemData);
+      
+      let menuItem;
+      if (typeof menuService.createMenuItem === 'function') {
+        // Use o arquivo de serviço se disponível
+        menuItem = menuService.createMenuItem(menuItemData);
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        menuItem = await storage.createMenuItem(menuItemData);
+      }
+      
       res.status(201).json(menuItem);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid menu item data", errors: error.errors });
       }
+      console.error("Erro ao criar item de menu:", error);
       res.status(500).json({ message: "Failed to create menu item" });
     }
   });
@@ -104,7 +167,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const menuItemData = insertMenuItemSchema.partial().parse(req.body);
-      const updatedMenuItem = await storage.updateMenuItem(id, menuItemData);
+      
+      let updatedMenuItem;
+      if (typeof menuService.updateMenuItem === 'function') {
+        // Use o arquivo de serviço se disponível
+        updatedMenuItem = menuService.updateMenuItem(id, menuItemData);
+      } else {
+        // Use o armazenamento em memória ou banco de dados
+        updatedMenuItem = await storage.updateMenuItem(id, menuItemData);
+      }
       
       if (!updatedMenuItem) {
         return res.status(404).json({ message: "Menu item not found" });
@@ -115,6 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid menu item data", errors: error.errors });
       }
+      console.error(`Erro ao atualizar item de menu com ID ${req.params.id}:`, error);
       res.status(500).json({ message: "Failed to update menu item" });
     }
   });
