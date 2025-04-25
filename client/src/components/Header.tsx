@@ -19,9 +19,9 @@ const Header = () => {
       if (item.internalLink === 'home') return '/';
       
       // Links para seções principais
-      if (item.internalLink === 'servicos') return '/servicos';
-      if (item.internalLink === 'site') return '/site';
-      if (item.internalLink === 'alex') return '/alex';
+      if (item.internalLink === 'servicos') return 'servicos';
+      if (item.internalLink === 'site') return 'site';
+      if (item.internalLink === 'alex') return 'alex';
       
       // Páginas personalizadas criadas pelo usuário
       return `/${item.internalLink}`;
