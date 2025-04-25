@@ -252,7 +252,15 @@ export class MemStorage implements IStorage {
   
   async createMenuItem(insertMenuItem: InsertMenuItem): Promise<MenuItem> {
     const id = this.menuItemCurrentId++;
-    const menuItem: MenuItem = { ...insertMenuItem, id };
+    // Assegurar que todos os campos necessários estão definidos
+    const menuItem: MenuItem = { 
+      id,
+      text: insertMenuItem.text,
+      type: insertMenuItem.type,
+      order: insertMenuItem.order,
+      internalLink: insertMenuItem.internalLink || null,
+      externalUrl: insertMenuItem.externalUrl || null
+    };
     this.menuItems.set(id, menuItem);
     return menuItem;
   }
@@ -261,9 +269,14 @@ export class MemStorage implements IStorage {
     const existingMenuItem = this.menuItems.get(id);
     if (!existingMenuItem) return undefined;
     
+    // Garantir que valores opcionais serão corretamente tratados
     const updatedMenuItem: MenuItem = {
-      ...existingMenuItem,
-      ...menuItemUpdate
+      id: existingMenuItem.id,
+      text: menuItemUpdate.text !== undefined ? menuItemUpdate.text : existingMenuItem.text,
+      type: menuItemUpdate.type !== undefined ? menuItemUpdate.type : existingMenuItem.type,
+      order: existingMenuItem.order,
+      internalLink: menuItemUpdate.internalLink !== undefined ? menuItemUpdate.internalLink : existingMenuItem.internalLink,
+      externalUrl: menuItemUpdate.externalUrl !== undefined ? menuItemUpdate.externalUrl : existingMenuItem.externalUrl
     };
     
     this.menuItems.set(id, updatedMenuItem);
