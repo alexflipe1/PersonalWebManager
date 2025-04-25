@@ -60,6 +60,35 @@ export const insertSiteSettingsSchema = createInsertSchema(siteSettings).pick({
   value: true,
 });
 
+// Custom buttons schema
+export const customButtons = pgTable("custom_buttons", {
+  id: serial("id").primaryKey(),
+  text: text("text").notNull(),
+  type: text("type").notNull(), // 'internal', 'external', 'iframe', 'email'
+  url: text("url").notNull(),
+  internalLink: text("internal_link"),
+  externalUrl: text("external_url"),
+  email: text("email"),
+  pageSlug: text("page_slug").notNull(),
+  style: text("style").default("primary").notNull(),
+  size: text("size").default("default").notNull(),
+  openInNewTab: boolean("open_in_new_tab").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCustomButtonSchema = createInsertSchema(customButtons).pick({
+  text: true,
+  type: true,
+  url: true,
+  internalLink: true,
+  externalUrl: true,
+  email: true,
+  pageSlug: true,
+  style: true,
+  size: true,
+  openInNewTab: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -69,6 +98,9 @@ export type InsertPage = z.infer<typeof insertPageSchema>;
 
 export type MenuItem = typeof menuItems.$inferSelect;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
+
+export type CustomButton = typeof customButtons.$inferSelect;
+export type InsertCustomButton = z.infer<typeof insertCustomButtonSchema>;
 
 export type SiteSettings = typeof siteSettings.$inferSelect;
 export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;
