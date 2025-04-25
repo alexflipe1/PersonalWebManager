@@ -75,7 +75,7 @@ const CustomPage = () => {
             ? { target: "_blank", rel: "noopener noreferrer" }
             : {};
             
-          // Determinar se é Link interno ou âncora externa
+          // Determinar o tipo de botão (interno, externo, iframe ou email)
           if (btn.type === 'internal') {
             return (
               <Link key={btn.id} href={btn.url || '/'}>
@@ -84,7 +84,17 @@ const CustomPage = () => {
                 </Button>
               </Link>
             );
+          } else if (btn.type === 'iframe') {
+            // Para botões de iframe, encapsula a URL no componente IframePage
+            return (
+              <Link key={btn.id} href={`/iframe/${encodeURIComponent(btn.url)}`}>
+                <Button variant={variant} size={size} className="my-1">
+                  {btn.text}
+                </Button>
+              </Link>
+            );
           } else {
+            // Botões externos (tipo 'external' ou 'email')
             return (
               <Button
                 key={btn.id}
