@@ -6,7 +6,7 @@ import { useSiteData } from "@/hooks/useSiteData";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { menuItems } = useSiteData();
 
   const toggleMobileMenu = () => {
@@ -38,15 +38,22 @@ const Header = () => {
     }
   };
 
-  const handleMenuItemClick = (item: any) => {
+  const handleMenuItemClick = (item: any, e: React.MouseEvent) => {
     setIsMobileMenuOpen(false);
     
     if (item.type === 'external' && !item.openInIframe) {
       window.open(item.externalUrl, '_blank');
-      return false; // Prevent default link behavior
+      e.preventDefault();
+      return;
     }
     
-    return true; // Allow default link behavior
+    // Para links internos, usamos o navigate para evitar problemas
+    // com URLs absolutas vs. relativas
+    if (item.type === 'internal') {
+      e.preventDefault();
+      const path = getPathForMenuItem(item);
+      navigate(path);
+    }
   };
 
   const isActive = (path: string) => {
@@ -70,7 +77,7 @@ const Header = () => {
               <Link 
                 key={item.id} 
                 href={path}
-                onClick={() => handleMenuItemClick(item)}
+                onClick={(e) => handleMenuItemClick(item, e)}
                 className={`relative font-medium transition-colors ${
                   isActive(path) 
                     ? 'text-primary after:content-[""] after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-primary' 
