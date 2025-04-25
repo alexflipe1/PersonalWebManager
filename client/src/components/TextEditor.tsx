@@ -67,37 +67,190 @@ const TextEditor = ({ value, onChange }: TextEditorProps) => {
   const formatNumberedList = () => execCommand('insertOrderedList');
 
   const insertImage = () => {
-    let url = prompt('Digite a URL da imagem:');
+    // Opções de origem para a imagem
+    const sourceOptions = [
+      "Imagem de URL externa (exemplo: imgur.com/imagem.jpg)",
+      "Inserir imagem por URL personalizada",
+      "Cancelar"
+    ];
+    
+    const sourceOption = prompt(
+      `Escolha a origem da imagem (digite o número):\n` +
+      `1. ${sourceOptions[0]}\n` +
+      `2. ${sourceOptions[1]}\n` +
+      `3. ${sourceOptions[2]}`
+    );
+    
+    let url = '';
+    
+    switch (sourceOption) {
+      case '1': // URL externa
+        url = prompt('Digite a URL da imagem:') || '';
+        if (url && !url.match(/^https?:\/\//)) {
+          url = `http://${url}`;
+        }
+        break;
+      
+      case '2': // URL personalizada
+        url = prompt('Digite a URL completa da imagem (inclua http:// ou https:// se necessário):') || '';
+        break;
+      
+      default:
+        // Não fazer nada/cancelar
+        return;
+    }
+    
     if (url) {
-      // Adicionar prefixo http:// às URLs externas se não tiverem
-      if (!url.startsWith('/') && !url.match(/^https?:\/\//)) {
-        url = `http://${url}`;
+      const altText = prompt('Digite um texto alternativo para a imagem (opcional):') || 'Imagem';
+      const imageSize = prompt('Escolha o tamanho da imagem (pequena, média, grande) ou deixe em branco para automático:');
+      
+      let sizeClass = 'max-w-full';
+      
+      switch (imageSize?.toLowerCase()) {
+        case 'pequena':
+          sizeClass = 'max-w-[30%]';
+          break;
+        case 'média':
+        case 'media':
+          sizeClass = 'max-w-[60%]';
+          break;
+        case 'grande':
+          sizeClass = 'max-w-[90%]';
+          break;
       }
-      execCommand('insertHTML', `<img src="${url}" alt="Imagem" class="max-w-full h-auto rounded my-2" />`);
+      
+      execCommand('insertHTML', `<img src="${url}" alt="${altText}" class="${sizeClass} h-auto rounded my-2" />`);
     }
   };
 
   const insertLink = () => {
-    let url = prompt('Digite a URL do link:');
-    if (url) {
-      // Adicionar prefixo http:// às URLs externas se não tiverem
-      if (!url.startsWith('/') && !url.match(/^https?:\/\//)) {
-        url = `http://${url}`;
-      }
-      execCommand('createLink', url);
+    // Opções de destino para escolher
+    const targetOptions = [
+      "Link para URL externa (exemplo: google.com)",
+      "Link para uma página do site",
+      "Link para enviar e-mail",
+      "Cancelar"
+    ];
+    
+    const targetOption = prompt(
+      `Escolha o tipo de link (digite o número):\n` +
+      `1. ${targetOptions[0]}\n` +
+      `2. ${targetOptions[1]}\n` +
+      `3. ${targetOptions[2]}\n` +
+      `4. ${targetOptions[3]}`
+    );
+    
+    let url = '';
+    
+    // Processar com base na escolha
+    switch (targetOption) {
+      case '1': // URL externa
+        url = prompt('Digite a URL externa:') || '';
+        if (url && !url.match(/^https?:\/\//)) {
+          url = `http://${url}`;
+        }
+        if (url) {
+          execCommand('createLink', url);
+          // Definir o atributo target="_blank" para abrir em nova aba
+          try {
+            setTimeout(() => {
+              const selection = window.getSelection();
+              if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE) {
+                  const container = range.commonAncestorContainer as Element;
+                  const links = container.querySelectorAll('a');
+                  links.forEach((link: Element) => {
+                    link.setAttribute('target', '_blank');
+                  });
+                } else if (range.commonAncestorContainer.parentElement) {
+                  const links = range.commonAncestorContainer.parentElement.querySelectorAll('a');
+                  links.forEach((link: Element) => {
+                    link.setAttribute('target', '_blank');
+                  });
+                }
+              }
+            }, 100);
+          } catch (error) {
+            console.error('Erro ao definir target="_blank":', error);
+          }
+        }
+        break;
+      
+      case '2': // Página interna
+        const pagePath = prompt('Digite o caminho da página (exemplo: servicos, proxmox):');
+        if (pagePath) {
+          url = `/${pagePath}`;
+          execCommand('createLink', url);
+        }
+        break;
+      
+      case '3': // Email
+        const email = prompt('Digite o endereço de e-mail:');
+        if (email) {
+          url = `mailto:${email}`;
+          execCommand('createLink', url);
+        }
+        break;
+      
+      default:
+        // Não fazer nada/cancelar
+        break;
     }
   };
 
   const insertButton = () => {
     const buttonText = prompt('Digite o texto do botão:') || 'Botão';
-    let buttonUrl = prompt('Digite a URL do botão (deixe em branco para nenhuma):') || '#';
+
+    // Opções de destino para escolher
+    const targetOptions = [
+      "Digite uma URL externa (exemplo: google.com)",
+      "Botão para uma página do site",
+      "Botão para enviar e-mail",
+      "Botão sem link (decorativo)"
+    ];
     
-    // Adicionar prefixo http:// às URLs externas se não tiverem
-    if (buttonUrl !== '#' && !buttonUrl.startsWith('/') && !buttonUrl.match(/^https?:\/\//)) {
-      buttonUrl = `http://${buttonUrl}`;
+    const targetOption = prompt(
+      `Escolha o tipo de link para o botão (digite o número):\n` +
+      `1. ${targetOptions[0]}\n` +
+      `2. ${targetOptions[1]}\n` +
+      `3. ${targetOptions[2]}\n` +
+      `4. ${targetOptions[3]}`
+    );
+    
+    let buttonUrl = '#';
+    let target = '';
+    
+    // Processar com base na escolha
+    switch (targetOption) {
+      case '1': // URL externa
+        buttonUrl = prompt('Digite a URL externa:') || '#';
+        if (buttonUrl !== '#' && !buttonUrl.match(/^https?:\/\//)) {
+          buttonUrl = `http://${buttonUrl}`;
+        }
+        target = ' target="_blank"';
+        break;
+      case '2': // Página interna
+        const pagePath = prompt('Digite o caminho da página (exemplo: servicos, proxmox):');
+        if (pagePath) {
+          buttonUrl = `/${pagePath}`;
+        }
+        break;
+      case '3': // Email
+        const email = prompt('Digite o endereço de e-mail:');
+        if (email) {
+          buttonUrl = `mailto:${email}`;
+        }
+        break;
+      case '4': // Sem link
+        buttonUrl = 'javascript:void(0)';
+        break;
+      default:
+        // Se não escolher opção válida, usa link vazio
+        buttonUrl = '#';
     }
     
-    execCommand('insertHTML', `<a href="${buttonUrl}" class="inline-block bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200 my-2" target="_blank">${buttonText}</a>`);
+    execCommand('insertHTML', `<a href="${buttonUrl}" class="inline-block bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200 my-2"${target}>${buttonText}</a>`);
   };
 
   return (
