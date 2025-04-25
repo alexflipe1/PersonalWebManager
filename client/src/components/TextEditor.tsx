@@ -67,23 +67,37 @@ const TextEditor = ({ value, onChange }: TextEditorProps) => {
   const formatNumberedList = () => execCommand('insertOrderedList');
 
   const insertImage = () => {
-    const url = prompt('Digite a URL da imagem:');
+    let url = prompt('Digite a URL da imagem:');
     if (url) {
+      // Adicionar prefixo http:// às URLs externas se não tiverem
+      if (!url.startsWith('/') && !url.match(/^https?:\/\//)) {
+        url = `http://${url}`;
+      }
       execCommand('insertHTML', `<img src="${url}" alt="Imagem" class="max-w-full h-auto rounded my-2" />`);
     }
   };
 
   const insertLink = () => {
-    const url = prompt('Digite a URL do link:');
+    let url = prompt('Digite a URL do link:');
     if (url) {
+      // Adicionar prefixo http:// às URLs externas se não tiverem
+      if (!url.startsWith('/') && !url.match(/^https?:\/\//)) {
+        url = `http://${url}`;
+      }
       execCommand('createLink', url);
     }
   };
 
   const insertButton = () => {
     const buttonText = prompt('Digite o texto do botão:') || 'Botão';
-    const buttonUrl = prompt('Digite a URL do botão (deixe em branco para nenhuma):') || '#';
-    execCommand('insertHTML', `<a href="${buttonUrl}" class="inline-block bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200 my-2">${buttonText}</a>`);
+    let buttonUrl = prompt('Digite a URL do botão (deixe em branco para nenhuma):') || '#';
+    
+    // Adicionar prefixo http:// às URLs externas se não tiverem
+    if (buttonUrl !== '#' && !buttonUrl.startsWith('/') && !buttonUrl.match(/^https?:\/\//)) {
+      buttonUrl = `http://${buttonUrl}`;
+    }
+    
+    execCommand('insertHTML', `<a href="${buttonUrl}" class="inline-block bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200 my-2" target="_blank">${buttonText}</a>`);
   };
 
   return (
