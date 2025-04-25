@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "text": "Início",
+    "type": "internal",
+    "internalLink": "/home",
+    "externalUrl": null,
+    "order": 1
+  },
+  {
+    "id": 2,
+    "text": "Serviços",
+    "type": "internal",
+    "internalLink": "/servicos",
+    "externalUrl": null,
+    "order": 2
+  },
+  {
+    "id": 3,
+    "text": "Alex",
+    "type": "internal",
+    "internalLink": "/admin",
+    "externalUrl": null,
+    "order": 3
+  },
+  {
+    "id": 4,
+    "text": "Site",
+    "type": "internal",
+    "internalLink": "/site",
+    "externalUrl": null,
+    "order": 4
+  }
+]

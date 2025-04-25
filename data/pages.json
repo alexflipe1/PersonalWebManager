@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "Início",
+    "slug": "home",
+    "content": "<h1 class=\"text-3xl font-bold mb-6\">Bem-vindo ao Meu Site</h1><p class=\"mb-4\">Esta é a página inicial do site. Você pode editar este conteúdo na área administrativa.</p>"
+  },
+  {
+    "id": 2,
+    "title": "Serviços",
+    "slug": "servicos",
+    "content": "<h1 class=\"text-3xl font-bold mb-6\">Nossos Serviços</h1><p class=\"mb-4\">Aqui você encontrará informações sobre os serviços oferecidos.</p>"
+  },
+  {
+    "id": 3,
+    "title": "Informações do Site",
+    "slug": "site",
+    "content": "<h1 class=\"text-3xl font-bold mb-6\">Sobre o Site</h1><p class=\"mb-4\">Informações sobre este site e como ele foi desenvolvido.</p>"
+  }
+]
