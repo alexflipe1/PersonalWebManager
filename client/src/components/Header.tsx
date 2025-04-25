@@ -56,8 +56,9 @@ const Header = () => {
     if (item.type === 'internal') {
       e.preventDefault(); // Prevenimos o comportamento padrão
       
-      // Extrair o protocolo e o host da URL atual
-      const baseUrl = window.location.origin;
+      // Corrigimos usando o protocolo e host atuais
+      const currentProtocol = window.location.protocol;
+      const currentHost = window.location.host; // host inclui o domínio/IP e a porta
       
       let path = '';
       if (item.internalLink === 'home') path = '/';
@@ -67,7 +68,8 @@ const Header = () => {
       else path = `/${item.internalLink}`;
       
       // Criamos a URL completa com o protocolo e host atuais
-      window.location.href = baseUrl + path;
+      const fullUrl = `${currentProtocol}//${currentHost}${path}`;
+      window.location.href = fullUrl;
     }
   };
 
