@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertPageSchema, insertMenuItemSchema, insertCustomButtonSchema } from "@shared/schema";
 import * as customButtonsService from "./customButtons";
+import * as pageService from "./pageService";
+import * as menuService from "./menuService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Pages routes
