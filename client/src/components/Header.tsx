@@ -15,6 +15,7 @@ const Header = () => {
 
   const getPathForMenuItem = (item: any) => {
     if (item.type === 'internal') {
+      // Garante que as URLs são relativas (não absolutas)
       if (item.internalLink === 'home') return '/';
       if (item.internalLink === 'servicos') return '/servicos';
       if (item.internalLink === 'site') return '/site';
@@ -27,6 +28,7 @@ const Header = () => {
         const url = item.externalUrl || '';
         // Adiciona http:// se não tiver protocolo
         const formattedUrl = url.match(/^https?:\/\//) ? url : `http://${url}`;
+        // Garantimos que a URL do iframe é relativa
         return `/iframe/${encodeURIComponent(formattedUrl)}`;
       } catch (e) {
         console.error("URL inválida:", item.externalUrl);
@@ -47,12 +49,11 @@ const Header = () => {
       return;
     }
     
-    // Para links internos, usamos o setLocation para evitar problemas
-    // com URLs absolutas vs. relativas
+    // Para links internos, usamos o URL relativa para evitar problemas
     if (item.type === 'internal') {
-      e.preventDefault();
-      const path = getPathForMenuItem(item);
-      setLocation(path);
+      // Não vamos usar o preventDefault nem o setLocation
+      // Vamos deixar o Link do wouter lidar com a navegação
+      // apenas garantindo que os paths são relativos
     }
   };
 
