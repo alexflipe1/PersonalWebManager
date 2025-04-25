@@ -2,8 +2,12 @@ import {
   User, InsertUser, 
   Page, InsertPage, 
   MenuItem, InsertMenuItem,
-  SiteSettings, InsertSiteSettings
+  CustomButton, InsertCustomButton,
+  SiteSettings, InsertSiteSettings,
+  users, pages, menuItems, customButtons, siteSettings
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, asc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -26,6 +30,14 @@ export interface IStorage {
   updateMenuItem(id: number, menuItem: Partial<InsertMenuItem>): Promise<MenuItem | undefined>;
   deleteMenuItem(id: number): Promise<boolean>;
   reorderMenuItems(itemIds: number[]): Promise<MenuItem[]>;
+  
+  // Custom Button methods
+  getCustomButtons(): Promise<CustomButton[]>;
+  getCustomButtonsByPage(pageSlug: string): Promise<CustomButton[]>;
+  getCustomButton(id: number): Promise<CustomButton | undefined>;
+  createCustomButton(button: InsertCustomButton): Promise<CustomButton>;
+  updateCustomButton(id: number, button: Partial<InsertCustomButton>): Promise<CustomButton | undefined>;
+  deleteCustomButton(id: number): Promise<boolean>;
   
   // Settings methods
   getSetting(name: string): Promise<SiteSettings | undefined>;
@@ -314,4 +326,174 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Implementação usando banco de dados PostgreSQL
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  // Page methods
+  async getPages(): Promise<Page[]> {
+    return db.select().from(pages).orderBy(asc(pages.id));
+  }
+
+  async getPage(id: number): Promise<Page | undefined> {
+    const [page] = await db.select().from(pages).where(eq(pages.id, id));
+    return page;
+  }
+
+  async getPageBySlug(slug: string): Promise<Page | undefined> {
+    const [page] = await db.select().from(pages).where(eq(pages.slug, slug));
+    return page;
+  }
+
+  async createPage(insertPage: InsertPage): Promise<Page> {
+    const now = new Date();
+    const [page] = await db.insert(pages)
+      .values({
+        ...insertPage,
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning();
+    return page;
+  }
+
+  async updatePage(id: number, pageUpdate: Partial<InsertPage>): Promise<Page | undefined> {
+    const now = new Date();
+    const [page] = await db.update(pages)
+      .set({
+        ...pageUpdate,
+        updatedAt: now
+      })
+      .where(eq(pages.id, id))
+      .returning();
+    
+    return page;
+  }
+
+  async deletePage(id: number): Promise<boolean> {
+    const result = await db.delete(pages).where(eq(pages.id, id));
+    return result.count > 0;
+  }
+
+  // Menu methods
+  async getMenuItems(): Promise<MenuItem[]> {
+    return db.select().from(menuItems).orderBy(asc(menuItems.order));
+  }
+
+  async getMenuItem(id: number): Promise<MenuItem | undefined> {
+    const [menuItem] = await db.select().from(menuItems).where(eq(menuItems.id, id));
+    return menuItem;
+  }
+
+  async createMenuItem(insertMenuItem: InsertMenuItem): Promise<MenuItem> {
+    const [menuItem] = await db.insert(menuItems)
+      .values(insertMenuItem)
+      .returning();
+    return menuItem;
+  }
+
+  async updateMenuItem(id: number, menuItemUpdate: Partial<InsertMenuItem>): Promise<MenuItem | undefined> {
+    const [menuItem] = await db.update(menuItems)
+      .set(menuItemUpdate)
+      .where(eq(menuItems.id, id))
+      .returning();
+    
+    return menuItem;
+  }
+
+  async deleteMenuItem(id: number): Promise<boolean> {
+    const result = await db.delete(menuItems).where(eq(menuItems.id, id));
+    return result.count > 0;
+  }
+
+  async reorderMenuItems(itemIds: number[]): Promise<MenuItem[]> {
+    // Atualizar a ordem de cada item de menu com base em sua posição no array
+    const promises = itemIds.map((id, index) => {
+      return db.update(menuItems)
+        .set({ order: index + 1 })
+        .where(eq(menuItems.id, id));
+    });
+
+    await Promise.all(promises);
+    
+    return this.getMenuItems();
+  }
+
+  // Custom Button methods
+  async getCustomButtons(): Promise<CustomButton[]> {
+    return db.select().from(customButtons);
+  }
+
+  async getCustomButtonsByPage(pageSlug: string): Promise<CustomButton[]> {
+    return db.select().from(customButtons).where(eq(customButtons.pageSlug, pageSlug));
+  }
+
+  async getCustomButton(id: number): Promise<CustomButton | undefined> {
+    const [button] = await db.select().from(customButtons).where(eq(customButtons.id, id));
+    return button;
+  }
+
+  async createCustomButton(button: InsertCustomButton): Promise<CustomButton> {
+    const [newButton] = await db.insert(customButtons).values(button).returning();
+    return newButton;
+  }
+
+  async updateCustomButton(id: number, buttonUpdate: Partial<InsertCustomButton>): Promise<CustomButton | undefined> {
+    const [button] = await db.update(customButtons)
+      .set(buttonUpdate)
+      .where(eq(customButtons.id, id))
+      .returning();
+    
+    return button;
+  }
+
+  async deleteCustomButton(id: number): Promise<boolean> {
+    const result = await db.delete(customButtons).where(eq(customButtons.id, id));
+    return result.count > 0;
+  }
+
+  // Settings methods
+  async getSetting(name: string): Promise<SiteSettings | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.name, name));
+    return setting;
+  }
+
+  async saveSetting(insertSetting: InsertSiteSettings): Promise<SiteSettings> {
+    // Verificar se a configuração já existe
+    const existingSetting = await this.getSetting(insertSetting.name);
+    
+    if (existingSetting) {
+      // Atualizar
+      const [setting] = await db.update(siteSettings)
+        .set({ value: insertSetting.value })
+        .where(eq(siteSettings.name, insertSetting.name))
+        .returning();
+      
+      return setting;
+    } else {
+      // Criar novo
+      const [setting] = await db.insert(siteSettings)
+        .values(insertSetting)
+        .returning();
+      
+      return setting;
+    }
+  }
+}
+
+// Usar o armazenamento de banco de dados em vez do armazenamento em memória
+export const storage = new DatabaseStorage();
