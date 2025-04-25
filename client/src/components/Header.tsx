@@ -15,60 +15,49 @@ const Header = () => {
 
   const getPathForMenuItem = (item: any) => {
     if (item.type === 'internal') {
-      // Para links internos, usamos caminhos absolutos, mas sem domínio 
       if (item.internalLink === 'home') return '/';
-      
-      // Links para seções principais
-      if (item.internalLink === 'servicos') return 'servicos';
-      if (item.internalLink === 'site') return 'site';
-      if (item.internalLink === 'alex') return 'alex';
-      
-      // Páginas personalizadas criadas pelo usuário
+      if (item.internalLink === 'servicos') return '/servicos';
+      if (item.internalLink === 'site') return '/site';
+      if (item.internalLink === 'alex') return '/alex';
       return `/${item.internalLink}`;
     } else if (item.type === 'iframe') {
-      // Verificar se a URL externa é válida
       try {
         const url = item.externalUrl || '';
-        // Adiciona http:// se não tiver protocolo
         const formattedUrl = url.match(/^https?:\/\//) ? url : `http://${url}`;
-        // Garantimos que a URL do iframe é relativa
         return `/iframe/${encodeURIComponent(formattedUrl)}`;
       } catch (e) {
         console.error("URL inválida:", item.externalUrl);
         return '#';
       }
     } else {
-      // External links will be handled with onClick
       return '#';
     }
   };
 
   const handleMenuItemClick = (item: any, e: React.MouseEvent) => {
     setIsMobileMenuOpen(false);
-    
+
     if (item.type === 'external' && !item.openInIframe) {
       window.open(item.externalUrl, '_blank');
       e.preventDefault();
       return;
     }
-    
-    // Para links internos, usamos navegação manual para garantir compatibilidade
+
     if (item.type === 'internal') {
-      e.preventDefault(); // Prevenimos o comportamento padrão
-      
-      // Corrigimos usando o protocolo e host atuais
+      e.preventDefault();
+
       const currentProtocol = window.location.protocol;
-      const currentHost = window.location.host; // host inclui o domínio/IP e a porta
-      
+      const currentHost = window.location.host;
+
       let path = '';
-      if (item.internalLink === 'home') path = '';  // Sem barra para evitar // duplo
+      if (item.internalLink === 'home') path = '';
       else if (item.internalLink === 'servicos') path = 'servicos';
       else if (item.internalLink === 'site') path = 'site';
       else if (item.internalLink === 'alex') path = 'alex';
       else path = item.internalLink;
-      
-      // Criamos a URL completa com o protocolo e host atuais, garantindo apenas uma barra
-      const fullUrl = `${currentProtocol}//${currentHost}/${path}`;
+
+      // Corrigido para evitar //
+      const fullUrl = `${currentProtocol}//${currentHost}/${path.startsWith('/') ? path.slice(1) : path}`;
       window.location.href = fullUrl;
     }
   };
@@ -85,19 +74,18 @@ const Header = () => {
         <Link href="/" className="text-xl font-bold text-primary">
           Meu Site
         </Link>
-        
-        {/* Desktop Navigation */}
+
         <nav className="hidden md:flex space-x-6">
           {menuItems.map((item) => {
             const path = getPathForMenuItem(item);
             return (
-              <Link 
-                key={item.id} 
+              <Link
+                key={item.id}
                 href={path}
                 onClick={(e) => handleMenuItemClick(item, e)}
                 className={`relative font-medium transition-colors ${
-                  isActive(path) 
-                    ? 'text-primary after:content-[""] after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-primary' 
+                  isActive(path)
+                    ? 'text-primary after:content-[""] after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-primary'
                     : 'text-gray-600 hover:text-primary'
                 }`}
               >
@@ -106,8 +94,7 @@ const Header = () => {
             );
           })}
         </nav>
-        
-        {/* Mobile Menu Button */}
+
         <Button
           variant="ghost"
           size="icon"
@@ -118,19 +105,18 @@ const Header = () => {
           {isMobileMenuOpen ? <X /> : <Menu />}
         </Button>
       </div>
-      
-      {/* Mobile Navigation */}
+
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white shadow-lg absolute w-full z-10">
           <div className="container mx-auto px-4 py-2 flex flex-col">
             {menuItems.map((item) => (
-              <Link 
-                key={item.id} 
+              <Link
+                key={item.id}
                 href={getPathForMenuItem(item)}
                 onClick={(e) => handleMenuItemClick(item, e)}
                 className={`py-3 border-b border-gray-100 ${
-                  isActive(getPathForMenuItem(item)) 
-                    ? 'text-primary font-medium' 
+                  isActive(getPathForMenuItem(item))
+                    ? 'text-primary font-medium'
                     : 'text-gray-600'
                 }`}
               >
