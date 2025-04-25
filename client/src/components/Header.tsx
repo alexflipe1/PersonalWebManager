@@ -61,14 +61,14 @@ const Header = () => {
       const currentHost = window.location.host; // host inclui o domínio/IP e a porta
       
       let path = '';
-      if (item.internalLink === 'home') path = '/';
-      else if (item.internalLink === 'servicos') path = '/servicos';
-      else if (item.internalLink === 'site') path = '/site';
-      else if (item.internalLink === 'alex') path = '/alex';
-      else path = `/${item.internalLink}`;
+      if (item.internalLink === 'home') path = '';  // Sem barra para evitar // duplo
+      else if (item.internalLink === 'servicos') path = 'servicos';
+      else if (item.internalLink === 'site') path = 'site';
+      else if (item.internalLink === 'alex') path = 'alex';
+      else path = item.internalLink;
       
-      // Criamos a URL completa com o protocolo e host atuais
-      const fullUrl = `${currentProtocol}//${currentHost}${path}`;
+      // Criamos a URL completa com o protocolo e host atuais, garantindo apenas uma barra
+      const fullUrl = `${currentProtocol}//${currentHost}/${path}`;
       window.location.href = fullUrl;
     }
   };
