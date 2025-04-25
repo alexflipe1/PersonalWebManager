@@ -6,7 +6,7 @@ import { useSiteData } from "@/hooks/useSiteData";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [location, navigate] = useLocation();
+  const [location, setLocation] = useLocation();
   const { menuItems } = useSiteData();
 
   const toggleMobileMenu = () => {
@@ -47,12 +47,12 @@ const Header = () => {
       return;
     }
     
-    // Para links internos, usamos o navigate para evitar problemas
+    // Para links internos, usamos o setLocation para evitar problemas
     // com URLs absolutas vs. relativas
     if (item.type === 'internal') {
       e.preventDefault();
       const path = getPathForMenuItem(item);
-      navigate(path);
+      setLocation(path);
     }
   };
 
@@ -110,7 +110,7 @@ const Header = () => {
               <Link 
                 key={item.id} 
                 href={getPathForMenuItem(item)}
-                onClick={() => handleMenuItemClick(item)}
+                onClick={(e) => handleMenuItemClick(item, e)}
                 className={`py-3 border-b border-gray-100 ${
                   isActive(getPathForMenuItem(item)) 
                     ? 'text-primary font-medium' 
