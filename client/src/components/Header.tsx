@@ -14,14 +14,20 @@ const Header = () => {
   };
 
   const getPathForMenuItem = (item: any) => {
+    // Verificamos o caminho atual do site
+    const basePath = window.location.pathname.split('/')[1];
+
     if (item.type === 'internal') {
-      // Garante que as URLs são relativas (não absolutas)
-      if (item.internalLink === 'home') return '/';
-      if (item.internalLink === 'servicos') return '/servicos';
-      if (item.internalLink === 'site') return '/site';
-      if (item.internalLink === 'alex') return '/alex';
+      // Para links internos, usamos caminhos relativos 
+      if (item.internalLink === 'home') return './';
+      
+      // Links para seções principais
+      if (item.internalLink === 'servicos') return './servicos';
+      if (item.internalLink === 'site') return './site';
+      if (item.internalLink === 'alex') return './alex';
+      
       // Páginas personalizadas criadas pelo usuário
-      return `/${item.internalLink}`;
+      return `./${item.internalLink}`;
     } else if (item.type === 'iframe') {
       // Verificar se a URL externa é válida
       try {
@@ -29,7 +35,7 @@ const Header = () => {
         // Adiciona http:// se não tiver protocolo
         const formattedUrl = url.match(/^https?:\/\//) ? url : `http://${url}`;
         // Garantimos que a URL do iframe é relativa
-        return `/iframe/${encodeURIComponent(formattedUrl)}`;
+        return `./iframe/${encodeURIComponent(formattedUrl)}`;
       } catch (e) {
         console.error("URL inválida:", item.externalUrl);
         return '#';
@@ -49,11 +55,19 @@ const Header = () => {
       return;
     }
     
-    // Para links internos, usamos o URL relativa para evitar problemas
+    // Para links internos, usamos navegação manual para garantir compatibilidade
     if (item.type === 'internal') {
-      // Não vamos usar o preventDefault nem o setLocation
-      // Vamos deixar o Link do wouter lidar com a navegação
-      // apenas garantindo que os paths são relativos
+      e.preventDefault(); // Prevenimos o comportamento padrão
+      
+      let path = '';
+      if (item.internalLink === 'home') path = '/';
+      else if (item.internalLink === 'servicos') path = '/servicos';
+      else if (item.internalLink === 'site') path = '/site';
+      else if (item.internalLink === 'alex') path = '/alex';
+      else path = `/${item.internalLink}`;
+      
+      // Navegamos usando a função da biblioteca que manipula o caminho relativo corretamente
+      window.location.href = path;
     }
   };
 
