@@ -3,11 +3,8 @@ import {
   Page, InsertPage, 
   MenuItem, InsertMenuItem,
   CustomButton, InsertCustomButton,
-  SiteSettings, InsertSiteSettings,
-  users, pages, menuItems, customButtons, siteSettings
+  SiteSettings, InsertSiteSettings
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, asc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -48,22 +45,26 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private pages: Map<number, Page>;
   private menuItems: Map<number, MenuItem>;
+  private customButtons: Map<number, CustomButton>;
   private settings: Map<string, SiteSettings>;
   
   userCurrentId: number;
   pageCurrentId: number;
   menuItemCurrentId: number;
+  customButtonCurrentId: number;
   settingCurrentId: number;
 
   constructor() {
     this.users = new Map();
     this.pages = new Map();
     this.menuItems = new Map();
+    this.customButtons = new Map();
     this.settings = new Map();
     
     this.userCurrentId = 1;
     this.pageCurrentId = 1;
     this.menuItemCurrentId = 1;
+    this.customButtonCurrentId = 1;
     this.settingCurrentId = 1;
     
     // Initialize with default data
@@ -313,6 +314,56 @@ export class MemStorage implements IStorage {
     return this.getMenuItems();
   }
   
+  // Custom Button methods
+  async getCustomButtons(): Promise<CustomButton[]> {
+    return Array.from(this.customButtons.values()).sort((a, b) => a.id - b.id);
+  }
+
+  async getCustomButtonsByPage(pageSlug: string): Promise<CustomButton[]> {
+    return Array.from(this.customButtons.values()).filter(button => button.pageSlug === pageSlug);
+  }
+
+  async getCustomButton(id: number): Promise<CustomButton | undefined> {
+    return this.customButtons.get(id);
+  }
+
+  async createCustomButton(insertButton: InsertCustomButton): Promise<CustomButton> {
+    const id = this.customButtonCurrentId++;
+    const now = new Date();
+    const button: CustomButton = {
+      ...insertButton,
+      id,
+      createdAt: now,
+      internalLink: insertButton.internalLink || null,
+      externalUrl: insertButton.externalUrl || null,
+      email: insertButton.email || null,
+      openInNewTab: insertButton.openInNewTab === undefined ? true : insertButton.openInNewTab
+    };
+    this.customButtons.set(id, button);
+    return button;
+  }
+
+  async updateCustomButton(id: number, buttonUpdate: Partial<InsertCustomButton>): Promise<CustomButton | undefined> {
+    const existingButton = this.customButtons.get(id);
+    if (!existingButton) return undefined;
+
+    const updatedButton: CustomButton = {
+      ...existingButton,
+      ...buttonUpdate,
+      internalLink: buttonUpdate.internalLink !== undefined ? buttonUpdate.internalLink : existingButton.internalLink,
+      externalUrl: buttonUpdate.externalUrl !== undefined ? buttonUpdate.externalUrl : existingButton.externalUrl,
+      email: buttonUpdate.email !== undefined ? buttonUpdate.email : existingButton.email,
+      openInNewTab: buttonUpdate.openInNewTab !== undefined ? buttonUpdate.openInNewTab : existingButton.openInNewTab
+    };
+
+    this.customButtons.set(id, updatedButton);
+    return updatedButton;
+  }
+
+  async deleteCustomButton(id: number): Promise<boolean> {
+    return this.customButtons.delete(id);
+  }
+
   // Settings methods
   async getSetting(name: string): Promise<SiteSettings | undefined> {
     return this.settings.get(name);
@@ -495,5 +546,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Usar o armazenamento de banco de dados em vez do armazenamento em memória
-export const storage = new DatabaseStorage();
+// Usar o armazenamento em memória temporariamente enquanto o banco de dados está sendo configurado
+export const storage = new MemStorage();

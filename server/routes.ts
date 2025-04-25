@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertPageSchema, insertMenuItemSchema } from "@shared/schema";
+import { insertPageSchema, insertMenuItemSchema, insertCustomButtonSchema } from "@shared/schema";
+import * as customButtonsService from "./customButtons";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Pages routes
@@ -145,6 +146,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid request data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to reorder menu items" });
+    }
+  });
+
+  // Botões Personalizados routes
+  app.get("/api/custom-buttons", async (req, res) => {
+    try {
+      let buttons;
+      if (typeof customButtonsService.getCustomButtons === 'function') {
+        // Use o arquivo de serviço se disponível
+        buttons = customButtonsService.getCustomButtons();
+      } else {
+        // Use o armazenamento de memória ou banco de dados
+        buttons = await storage.getCustomButtons();
+      }
+      res.json(buttons);
+    } catch (error) {
+      console.error("Erro ao buscar botões personalizados:", error);
+      res.status(500).json({ message: "Erro ao buscar botões personalizados" });
+    }
+  });
+
+  app.get("/api/custom-buttons/page/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      let buttons;
+      if (typeof customButtonsService.getCustomButtonsByPage === 'function') {
+        // Use o arquivo de serviço se disponível
+        buttons = customButtonsService.getCustomButtonsByPage(slug);
+      } else {
+        // Use o armazenamento de memória ou banco de dados
+        buttons = await storage.getCustomButtonsByPage(slug);
+      }
+      res.json(buttons);
+    } catch (error) {
+      console.error(`Erro ao buscar botões para a página ${req.params.slug}:`, error);
+      res.status(500).json({ message: "Erro ao buscar botões personalizados para a página" });
+    }
+  });
+
+  app.get("/api/custom-buttons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      let button;
+      if (typeof customButtonsService.getCustomButtonById === 'function') {
+        // Use o arquivo de serviço se disponível
+        button = customButtonsService.getCustomButtonById(id);
+      } else {
+        // Use o armazenamento de memória ou banco de dados
+        button = await storage.getCustomButton(id);
+      }
+      
+      if (!button) {
+        return res.status(404).json({ message: "Botão não encontrado" });
+      }
+      
+      res.json(button);
+    } catch (error) {
+      console.error(`Erro ao buscar botão com ID ${req.params.id}:`, error);
+      res.status(500).json({ message: "Erro ao buscar botão personalizado" });
+    }
+  });
+
+  app.post("/api/custom-buttons", (req, res) => {
+    try {
+      const buttonSchema = z.object({
+        text: z.string(),
+        type: z.string(),
+        url: z.string(),
+        internalLink: z.string().nullable().optional(),
+        externalUrl: z.string().nullable().optional(),
+        email: z.string().nullable().optional(),
+        pageSlug: z.string(),
+        style: z.string().default("primary"),
+        size: z.string().default("default"),
+        openInNewTab: z.boolean().default(true)
+      });
+      
+      const buttonData = buttonSchema.parse(req.body);
+      
+      // Adicionamos a data de criação aqui
+      const now = new Date();
+      const newButtonWithTimestamp = {
+        ...buttonData,
+        createdAt: now
+      };
+      
+      // Usamos o arquivo de serviço para servidores baseados em arquivos
+      // ou o armazenamento para servidores baseados em memória ou banco de dados
+      let newButton;
+      if (typeof customButtonsService.addCustomButton === 'function') {
+        newButton = customButtonsService.addCustomButton(newButtonWithTimestamp);
+      } else {
+        newButton = storage.createCustomButton(newButtonWithTimestamp);
+      }
+      
+      res.status(201).json(newButton);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o botão", 
+          errors: error.errors 
+        });
+      }
+      
+      console.error("Erro ao criar botão personalizado:", error);
+      res.status(500).json({ message: "Erro ao criar botão personalizado" });
+    }
+  });
+
+  app.put("/api/custom-buttons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      const buttonSchema = z.object({
+        text: z.string().optional(),
+        type: z.string().optional(),
+        url: z.string().optional(),
+        internalLink: z.string().nullable().optional(),
+        externalUrl: z.string().nullable().optional(),
+        email: z.string().nullable().optional(),
+        pageSlug: z.string().optional(),
+        style: z.string().optional(),
+        size: z.string().optional(),
+        openInNewTab: z.boolean().optional()
+      });
+      
+      const buttonData = buttonSchema.parse(req.body);
+      
+      let updatedButton;
+      if (typeof customButtonsService.updateCustomButton === 'function') {
+        // Use o arquivo de serviço se disponível
+        updatedButton = customButtonsService.updateCustomButton(id, buttonData);
+      } else {
+        // Use o armazenamento de memória ou banco de dados
+        updatedButton = await storage.updateCustomButton(id, buttonData);
+      }
+      
+      if (!updatedButton) {
+        return res.status(404).json({ message: "Botão não encontrado" });
+      }
+      
+      res.json(updatedButton);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos para o botão", 
+          errors: error.errors 
+        });
+      }
+      
+      console.error(`Erro ao atualizar botão com ID ${req.params.id}:`, error);
+      res.status(500).json({ message: "Erro ao atualizar botão personalizado" });
+    }
+  });
+
+  app.delete("/api/custom-buttons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      let success;
+      if (typeof customButtonsService.deleteCustomButton === 'function') {
+        // Use o arquivo de serviço se disponível
+        success = customButtonsService.deleteCustomButton(id);
+      } else {
+        // Use o armazenamento de memória ou banco de dados
+        success = await storage.deleteCustomButton(id);
+      }
+      
+      if (success) {
+        res.status(204).end();
+      } else {
+        res.status(404).json({ message: "Botão não encontrado" });
+      }
+    } catch (error) {
+      console.error(`Erro ao excluir botão com ID ${req.params.id}:`, error);
+      res.status(500).json({ message: "Erro ao excluir botão personalizado" });
     }
   });
 
