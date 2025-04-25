@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { LogOut, FileText, Menu, PaintBucket } from "lucide-react";
+import { LogOut, FileText, Menu, PaintBucket, CircleOff, Layout, Square } from "lucide-react";
 import PagesSection from "./admin/PagesSection";
 import MenuSection from "./admin/MenuSection";
+import CustomButtonsSection from "./admin/CustomButtonsSection";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -37,6 +38,10 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
             <Menu className="mr-2 h-4 w-4" />
             <span>Menu</span>
           </TabsTrigger>
+          <TabsTrigger value="buttons" className="flex items-center">
+            <Square className="mr-2 h-4 w-4" />
+            <span>Botões Personalizados</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="pages" className="space-y-4">
@@ -45,6 +50,10 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         
         <TabsContent value="menu" className="space-y-4">
           <MenuSection />
+        </TabsContent>
+        
+        <TabsContent value="buttons" className="space-y-4">
+          <CustomButtonsSection />
         </TabsContent>
       </Tabs>
     </div>
