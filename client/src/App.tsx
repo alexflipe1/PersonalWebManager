@@ -29,6 +29,8 @@ function App() {
                   <Route path="/alex" component={Admin} />
                   <Route path="/iframe/:url*" component={IframePage} />
                   <Route path="/page/:slug" component={CustomPage} />
+                  {/* Rota para páginas personalizadas na raiz do site */}
+                  <Route path="/:slug" component={CustomPage} />
                   <Route component={NotFound} />
                 </Switch>
               </main>

@@ -7,7 +7,12 @@ const IframePage = () => {
   const { url } = useParams();
   const [, setLocation] = useLocation();
   const [previousPage, setPreviousPage] = useState("/");
-  const decodedUrl = url ? decodeURIComponent(url) : "";
+  
+  // Garantir que a URL tenha o protocolo http:// ou https://
+  let decodedUrl = url ? decodeURIComponent(url) : "";
+  if (decodedUrl && !decodedUrl.match(/^https?:\/\//)) {
+    decodedUrl = `http://${decodedUrl}`;
+  }
   
   useEffect(() => {
     // Store the previous page to return to
