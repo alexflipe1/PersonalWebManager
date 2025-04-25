@@ -1,7 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
 
 const Home = () => {
+  const queryClient = useQueryClient();
+  
+  // Forçar atualização dos dados ao carregar a página
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['/api/pages/home'] });
+  }, [queryClient]);
+  
   const { data: page, isLoading } = useQuery({
     queryKey: ['/api/pages/home']
   });
