@@ -42,28 +42,32 @@ function createDefaultMenuItems(): MenuItem[] {
       id: 1,
       text: 'Início',
       type: 'internal',
-      url: '/home',
+      internalLink: '/home',
+      externalUrl: null,
       order: 1
     },
     {
       id: 2,
       text: 'Serviços',
       type: 'internal',
-      url: '/servicos',
+      internalLink: '/servicos',
+      externalUrl: null,
       order: 2
     },
     {
       id: 3,
       text: 'Alex',
       type: 'internal',
-      url: '/admin',
+      internalLink: '/admin',
+      externalUrl: null,
       order: 3
     },
     {
       id: 4,
       text: 'Site',
       type: 'internal',
-      url: '/site',
+      internalLink: '/site',
+      externalUrl: null,
       order: 4
     }
   ];
