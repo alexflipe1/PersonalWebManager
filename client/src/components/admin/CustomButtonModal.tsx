@@ -157,7 +157,8 @@ const CustomButtonModal = ({ isOpen, onClose, button }: CustomButtonModalProps) 
     } else if (data.type === 'external' && data.externalUrl) {
       buttonUrl = data.externalUrl;
     } else if (data.type === 'iframe' && data.externalUrl) {
-      buttonUrl = `/iframe/${encodeURIComponent(data.externalUrl)}`;
+      // Usar diretamente a URL para o iframe em vez de encapsular 
+      buttonUrl = data.externalUrl;
     } else if (data.type === 'email' && data.email) {
       buttonUrl = `mailto:${data.email}`;
     }
