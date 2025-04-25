@@ -123,7 +123,11 @@ const MenuItemModal = ({ isOpen, onClose, menuItem }: MenuItemModalProps) => {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all relevant cache entries
       queryClient.invalidateQueries({ queryKey: ['/api/menu'] });
+      // Força recarregar as páginas, pois o menu pode afetar várias partes do site
+      queryClient.invalidateQueries({ queryKey: ['/api/pages'] });
+      
       toast({
         title: "Item adicionado",
         description: "O item foi adicionado ao menu com sucesso.",
@@ -158,7 +162,11 @@ const MenuItemModal = ({ isOpen, onClose, menuItem }: MenuItemModalProps) => {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all relevant cache entries
       queryClient.invalidateQueries({ queryKey: ['/api/menu'] });
+      // Força recarregar as páginas, pois o menu pode afetar várias partes do site
+      queryClient.invalidateQueries({ queryKey: ['/api/pages'] });
+      
       toast({
         title: "Item atualizado",
         description: "O item do menu foi atualizado com sucesso.",

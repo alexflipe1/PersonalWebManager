@@ -126,8 +126,13 @@ const PageModal = ({ isOpen, onClose, page }: PageModalProps) => {
       return updatedPage;
     },
     onSuccess: (updatedPage) => {
+      // Invalidate all relevant queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/pages'] });
       queryClient.invalidateQueries({ queryKey: [`/api/pages/${updatedPage.slug}`] });
+      // Also invalidate the specific page query
+      if (page && page.slug && page.slug !== updatedPage.slug) {
+        queryClient.invalidateQueries({ queryKey: [`/api/pages/${page.slug}`] });
+      }
       toast({
         title: "Página atualizada",
         description: "A página foi atualizada com sucesso.",
